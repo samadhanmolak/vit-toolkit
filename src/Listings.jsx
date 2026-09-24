@@ -102,9 +102,14 @@ const reportListing = async (listingId) => {
         const myOffer = myOffers.find(o => o.status === 'pending' || o.status === 'accepted')
         return (
           <div key={item.id} style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}>
-            {item.image_urls?.[0] && (
-              <img src={item.image_urls[0]} alt={item.title} style={{ width: '200px', display: 'block' }} />
-            )}
+           <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+               {item.image_urls?.map((url, i) => (
+               <img key={i} src={url} alt={item.title} style={{ width: '150px', display: 'block' }} />
+                ))}
+           </div>
+                {item.video_url && (
+                 <video src={item.video_url} controls style={{ width: '250px', marginTop: '8px' }} />
+              )}
             <h4>{item.title} — ₹{item.price} ({item.status})</h4>
             <p>{item.description}</p>
             <p>Category: {item.category} | Condition: {item.condition} | Used: {item.years_used} yrs</p>
