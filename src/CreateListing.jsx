@@ -100,8 +100,20 @@ export default function CreateListing({ session }) {
 
       <div>
         <label>Photos (multiple allowed):</label>
-        <input type="file" accept="image/*" multiple onChange={e => setImageFiles([...e.target.files])} />
-      </div>
+<input
+  type="file"
+  accept="image/*"
+  multiple
+  onChange={e => {
+    const files = [...e.target.files]
+    if (files.length > 4) {
+      alert('Max 4 photos allowed')
+      setImageFiles(files.slice(0, 4))
+    } else {
+      setImageFiles(files)
+    }
+  }}
+/>      </div>
 
       <div>
         <label>Video (max 10 seconds, optional):</label>
