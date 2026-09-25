@@ -4,6 +4,15 @@ import { supabase } from './supabaseClient'
 const CLOUD_NAME = 'agnk0gtu'
 const UPLOAD_PRESET = 'muf4smmc'
 
+const fieldStyle = {
+  width: '100%',
+  boxSizing: 'border-box',
+  margin: '6px 0',
+  padding: '10px',
+  display: 'block',
+  fontSize: '14px',
+}
+
 export default function CreateListing({ session }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -89,50 +98,55 @@ export default function CreateListing({ session }) {
   }
 
   return (
-    <div>
+    <div style={{ maxWidth: '400px' }}>
       <h3>Create Listing</h3>
-      <input placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} />
-      <input placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} />
-      <input placeholder="Price" type="number" value={price} onChange={e => setPrice(e.target.value)} />
-<select value={category} onChange={e => setCategory(e.target.value)}>
-  <option value="">Select Category</option>
-  <option value="Microcontrollers">Microcontrollers (Arduino, STM32, ESP32, Raspberry Pi)</option>
-  <option value="Sensors">Sensors</option>
-  <option value="Displays">Displays (LCD, OLED)</option>
-  <option value="Motors & Actuators">Motors & Actuators (Stepper, Servo, DC)</option>
-  <option value="LEDs & Lighting">LEDs & Lighting</option>
-  <option value="Power & Batteries">Power & Batteries</option>
-  <option value="Wires & Connectors">Wires & Connectors</option>
-  <option value="Breadboards & PCBs">Breadboards & PCBs</option>
-  <option value="Robotics Kits">Robotics Kits</option>
-  <option value="Tools">Tools</option>
-  <option value="Other">Other</option>
-</select>      <input placeholder="Condition" value={condition} onChange={e => setCondition(e.target.value)} />
-      <input placeholder="Years Used" type="number" value={yearsUsed} onChange={e => setYearsUsed(e.target.value)} />
+      <input style={fieldStyle} placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} />
+      <input style={fieldStyle} placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} />
+      <input style={fieldStyle} placeholder="Price" type="number" value={price} onChange={e => setPrice(e.target.value)} />
+
+      <select style={fieldStyle} value={category} onChange={e => setCategory(e.target.value)}>
+        <option value="">Select Category</option>
+        <option value="Microcontrollers">Microcontrollers (Arduino, STM32, ESP32, Raspberry Pi)</option>
+        <option value="Sensors">Sensors</option>
+        <option value="Displays">Displays (LCD, OLED)</option>
+        <option value="Motors & Actuators">Motors & Actuators (Stepper, Servo, DC)</option>
+        <option value="LEDs & Lighting">LEDs & Lighting</option>
+        <option value="Power & Batteries">Power & Batteries</option>
+        <option value="Wires & Connectors">Wires & Connectors</option>
+        <option value="Breadboards & PCBs">Breadboards & PCBs</option>
+        <option value="Robotics Kits">Robotics Kits</option>
+        <option value="Tools">Tools</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <input style={fieldStyle} placeholder="Condition" value={condition} onChange={e => setCondition(e.target.value)} />
+      <input style={fieldStyle} placeholder="Years Used" type="number" value={yearsUsed} onChange={e => setYearsUsed(e.target.value)} />
 
       <div>
-        <label>Photos (multiple allowed):</label>
-<input
-  type="file"
-  accept="image/*"
-  multiple
-  onChange={e => {
-    const files = [...e.target.files]
-    if (files.length > 4) {
-      alert('Max 4 photos allowed')
-      setImageFiles(files.slice(0, 4))
-    } else {
-      setImageFiles(files)
-    }
-  }}
-/>      </div>
+        <label>Photos (max 4):</label>
+        <input
+          style={fieldStyle}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={e => {
+            const files = [...e.target.files]
+            if (files.length > 4) {
+              alert('Max 4 photos allowed')
+              setImageFiles(files.slice(0, 4))
+            } else {
+              setImageFiles(files)
+            }
+          }}
+        />
+      </div>
 
       <div>
         <label>Video (max 10 seconds, optional):</label>
-        <input type="file" accept="video/*" onChange={handleVideoSelect} />
+        <input style={fieldStyle} type="file" accept="video/*" onChange={handleVideoSelect} />
       </div>
 
-      <button onClick={handleSubmit} disabled={uploading}>
+      <button style={fieldStyle} onClick={handleSubmit} disabled={uploading}>
         {uploading ? 'Uploading...' : 'Post Listing'}
       </button>
     </div>
