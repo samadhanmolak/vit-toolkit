@@ -7,6 +7,8 @@ export default function Listings({ session }) {
   const [listings, setListings] = useState([])
   const [offerAmount, setOfferAmount] = useState({})
   const [openChat, setOpenChat] = useState(null)
+  const [filterCategory, setFilterCategory] = useState('')
+  const [maxPrice, setMaxPrice] = useState('')
 
   useEffect(() => {
     fetchListings()
@@ -96,8 +98,32 @@ const reportListing = async (listingId) => {
   return (
     <div>
       <h3>Listings</h3>
-      {listings.map(item => {
-        const isOwner = item.seller_id === session.user.id
+      <div style={{ display: 'flex', gap: '10px', margin: '10px 0' }}>
+ <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
+  <option value="">All Categories</option>
+  <option value="Microcontrollers">Microcontrollers</option>
+  <option value="Sensors">Sensors</option>
+  <option value="Displays">Displays</option>
+  <option value="Motors & Actuators">Motors & Actuators</option>
+  <option value="LEDs & Lighting">LEDs & Lighting</option>
+  <option value="Power & Batteries">Power & Batteries</option>
+  <option value="Wires & Connectors">Wires & Connectors</option>
+  <option value="Breadboards & PCBs">Breadboards & PCBs</option>
+  <option value="Robotics Kits">Robotics Kits</option>
+  <option value="Tools">Tools</option>
+  <option value="Other">Other</option>
+</select>
+  <input
+    type="number"
+    placeholder="Max price (₹)"
+    value={maxPrice}
+    onChange={e => setMaxPrice(e.target.value)}
+  />
+</div>
+{listings
+  .filter(item => !filterCategory || item.category === filterCategory)
+  .filter(item => !maxPrice || item.price <= parseFloat(maxPrice))
+  .map(item => {        const isOwner = item.seller_id === session.user.id
         const myOffers = !isOwner ? item.offers.filter(o => o.buyer_id === session.user.id) : []
         const myOffer = myOffers.find(o => o.status === 'pending' || o.status === 'accepted')
         return (

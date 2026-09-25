@@ -94,8 +94,20 @@ export default function CreateListing({ session }) {
       <input placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} />
       <input placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} />
       <input placeholder="Price" type="number" value={price} onChange={e => setPrice(e.target.value)} />
-      <input placeholder="Category" value={category} onChange={e => setCategory(e.target.value)} />
-      <input placeholder="Condition" value={condition} onChange={e => setCondition(e.target.value)} />
+<select value={category} onChange={e => setCategory(e.target.value)}>
+  <option value="">Select Category</option>
+  <option value="Microcontrollers">Microcontrollers (Arduino, STM32, ESP32, Raspberry Pi)</option>
+  <option value="Sensors">Sensors</option>
+  <option value="Displays">Displays (LCD, OLED)</option>
+  <option value="Motors & Actuators">Motors & Actuators (Stepper, Servo, DC)</option>
+  <option value="LEDs & Lighting">LEDs & Lighting</option>
+  <option value="Power & Batteries">Power & Batteries</option>
+  <option value="Wires & Connectors">Wires & Connectors</option>
+  <option value="Breadboards & PCBs">Breadboards & PCBs</option>
+  <option value="Robotics Kits">Robotics Kits</option>
+  <option value="Tools">Tools</option>
+  <option value="Other">Other</option>
+</select>      <input placeholder="Condition" value={condition} onChange={e => setCondition(e.target.value)} />
       <input placeholder="Years Used" type="number" value={yearsUsed} onChange={e => setYearsUsed(e.target.value)} />
 
       <div>
