@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 import { supabase } from './supabaseClient'
 import Avatar from './Avatar'
 import Chat from './Chat'
+import PresenceStatus from './PresenceStatus'
 
-export default function Listings({ session }) {
-  const [listings, setListings] = useState([])
+
+export default function Listings({ session, onlineUsers }) {  const [listings, setListings] = useState([])
   const [offerAmount, setOfferAmount] = useState({})
   const [openChat, setOpenChat] = useState(null)
   const [filterCategory, setFilterCategory] = useState('')
@@ -157,10 +158,22 @@ const reportListing = async (listingId) => {
                     {openChat === offer.id && (
                       <Chat session={session} listingId={item.id} otherUserId={offer.buyer_id} onClose={() => setOpenChat(null)} />
                     )}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
-                      <Avatar name={offer.buyerName} size={28} />
-                      <span>{offer.buyerName}</span>
-                    </div>
+<div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+  <div style={{ position: 'relative' }}>
+    <Avatar name={offer.buyerName} size={28} />
+    {onlineUsers?.has(offer.buyer_id) && (
+      <span style={{
+        position: 'absolute', bottom: 0, right: 0,
+        width: '8px', height: '8px', borderRadius: '50%',
+        background: '#22c55e', border: '2px solid white',
+      }} />
+    )}
+  </div>
+  <div>
+    <div>{offer.buyerName}</div>
+    <PresenceStatus userId={offer.buyer_id} isOnline={onlineUsers?.has(offer.buyer_id)} />
+  </div>
+</div>
                   </div>
                 ))}
               </div>
@@ -193,10 +206,22 @@ const reportListing = async (listingId) => {
               </div>
             )}
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
-              <Avatar name={item.sellerName} />
-              <span>{item.sellerName}</span>
-            </div>
+<div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+  <div style={{ position: 'relative' }}>
+    <Avatar name={item.sellerName} />
+    {onlineUsers?.has(item.seller_id) && (
+      <span style={{
+        position: 'absolute', bottom: 0, right: 0,
+        width: '10px', height: '10px', borderRadius: '50%',
+        background: '#22c55e', border: '2px solid white',
+      }} />
+    )}
+  </div>
+  <div>
+    <div>{item.sellerName}</div>
+    <PresenceStatus userId={item.seller_id} isOnline={onlineUsers?.has(item.seller_id)} />
+  </div>
+</div>
             {!isOwner && (
             <button onClick={() => reportListing(item.id)} style={{ marginTop: '6px', fontSize: '12px', color: '#999' }}>
               🚩 Report
