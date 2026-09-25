@@ -6,7 +6,7 @@ import Listings from './Listings'
 import Purchases from './Purchases'
 import NotificationBell from './NotificationBell'
 import AdminPanel from './AdminPanel'
-
+import Analytics from './Analytics'
 
 function App() {
   const [session, setSession] = useState(null)
@@ -31,6 +31,7 @@ function App() {
       {session && <Listings session={session} />}
       {session && <Purchases session={session} />}
       {session && <AdminPanel session={session} />}
+      {session && session.user.id === 'b074885c-4a54-4dbc-b19f-11e6d068c04a' && <Analytics />}
     </div>
   )
 }
