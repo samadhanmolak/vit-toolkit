@@ -132,10 +132,16 @@ const reportListing = async (listingId) => {
         return (
           <div key={item.id} style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}>
            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-               {item.image_urls?.map((url, i) => (
-               <img key={i} src={url} alt={item.title} style={{ width: '150px', display: 'block' }} />
-                ))}
-           </div>
+  {item.image_urls?.map((url, i) => (
+    <img
+      key={i}
+      src={url}
+      alt={item.title}
+      style={{ width: '150px', display: 'block', cursor: 'pointer' }}
+      onClick={() => window.open(url, '_blank')}
+    />
+  ))}
+</div>
                 {item.video_url && (
                  <video src={item.video_url} controls style={{ width: '250px', marginTop: '8px' }} />
               )}
