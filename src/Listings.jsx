@@ -8,8 +8,18 @@ import PresenceStatus from './PresenceStatus'
 export default function Listings({ session, onlineUsers }) {  const [listings, setListings] = useState([])
   const [offerAmount, setOfferAmount] = useState({})
   const [openChat, setOpenChat] = useState(null)
-  const [filterCategory, setFilterCategory] = useState('')
-  const [maxPrice, setMaxPrice] = useState('')
+const [filterCategory, setFilterCategory] = useState('')
+const [maxPrice, setMaxPrice] = useState('')
+const [categories, setCategories] = useState([])
+
+useEffect(() => {
+    fetchCategories()
+  }, [])
+
+  const fetchCategories = async () => {
+    const { data, error } = await supabase.from('categories').select('*').order('name')
+    if (!error) setCategories(data)
+  }
 
   useEffect(() => {
     fetchListings()
@@ -100,19 +110,11 @@ const reportListing = async (listingId) => {
     <div>
       <h3>Listings</h3>
       <div style={{ display: 'flex', gap: '10px', margin: '10px 0' }}>
- <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
+<select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
   <option value="">All Categories</option>
-  <option value="Microcontrollers">Microcontrollers</option>
-  <option value="Sensors">Sensors</option>
-  <option value="Displays">Displays</option>
-  <option value="Motors & Actuators">Motors & Actuators</option>
-  <option value="LEDs & Lighting">LEDs & Lighting</option>
-  <option value="Power & Batteries">Power & Batteries</option>
-  <option value="Wires & Connectors">Wires & Connectors</option>
-  <option value="Breadboards & PCBs">Breadboards & PCBs</option>
-  <option value="Robotics Kits">Robotics Kits</option>
-  <option value="Tools">Tools</option>
-  <option value="Other">Other</option>
+  {categories.map(cat => (
+    <option key={cat.id} value={cat.name}>{cat.name}</option>
+  ))}
 </select>
   <input
     type="number"

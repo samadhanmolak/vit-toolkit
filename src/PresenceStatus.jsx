@@ -15,14 +15,16 @@ function timeAgo(timestamp) {
 
 export default function PresenceStatus({ userId, isOnline }) {
   const [lastSeen, setLastSeen] = useState(null)
+  const [, forceTick] = useState(0)
 
   useEffect(() => {
-    if (!isOnline) {
-      fetchLastSeen()
-      const interval = setInterval(fetchLastSeen, 30000)
-      return () => clearInterval(interval)
-    }
+    if (!isOnline) fetchLastSeen()
   }, [isOnline])
+
+  useEffect(() => {
+    const interval = setInterval(() => forceTick(t => t + 1), 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   const fetchLastSeen = async () => {
     const { data, error } = await supabase
