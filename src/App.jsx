@@ -8,11 +8,12 @@ import NotificationBell from './NotificationBell'
 import AdminPanel from './AdminPanel'
 import Analytics from './Analytics'
 import { usePresence } from './usePresence'
+import { useOfferNotifications } from './useOfferNotifications'
 
 function App() {
   const [session, setSession] = useState(null)
   const onlineUsers = usePresence(session)
-
+  useOfferNotifications(session)
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
@@ -24,6 +25,12 @@ function App() {
 
     return () => listener.subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    if (session && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
+  }, [session])
 
   return (
     <div>
