@@ -32,6 +32,12 @@ function App() {
     }
   }, [session])
 
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js')
+    }
+  }, [])
+
   return (
     <div>
       <Auth />
