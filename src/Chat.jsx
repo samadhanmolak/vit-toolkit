@@ -9,7 +9,7 @@ export default function Chat({ session, listingId, otherUserId, onClose }) {
     fetchMessages()
     markAsRead()
 
-   const channel = supabase
+    const channel = supabase
       .channel(`chat-${listingId}-${otherUserId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
         const msg = payload.new
@@ -66,30 +66,44 @@ export default function Chat({ session, listingId, otherUserId, onClose }) {
   }
 
   return (
-    <div style={{ border: '2px solid #333', padding: '10px', margin: '10px 0' }}>
-      <button onClick={onClose}>Close Chat</button>
-      <div style={{ maxHeight: '200px', overflowY: 'auto', margin: '10px 0' }}>
-        {messages.map(msg => {
-  const isMine = msg.sender_id === session.user.id
-  return (
-    <p key={msg.id} style={{ textAlign: isMine ? 'right' : 'left' }}>
-      <strong>{isMine ? 'You' : 'Them'}:</strong> {msg.content}
-      {isMine && (
-        <span style={{ color: msg.read ? '#25D366' : '#999', marginLeft: '6px' }}>
-          {msg.read ? '✓✓' : '✓'}
-        </span>
-      )}
-    </p>
-  )
-})}
+    <div style={{ background: '#e5ded8', borderRadius: '10px', padding: '10px', margin: '10px 0', maxWidth: '320px' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '6px' }}>
+        <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '13px', color: '#333' }}>✕ Close</button>
       </div>
-      <input
-        value={newMessage}
-        onChange={e => setNewMessage(e.target.value)}
-        placeholder="Type a message..."
-        onKeyDown={e => e.key === 'Enter' && sendMessage()}
-      />
-      <button onClick={sendMessage}>Send</button>
+      <div style={{ maxHeight: '220px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        {messages.map(msg => {
+          const isMine = msg.sender_id === session.user.id
+          return (
+            <div key={msg.id} style={{ display: 'flex', justifyContent: isMine ? 'flex-end' : 'flex-start' }}>
+              <div style={{
+                background: isMine ? '#1e293b' : 'white',
+                color: isMine ? 'white' : '#1a1a1a',
+                padding: '8px 12px',
+                borderRadius: isMine ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
+                maxWidth: '75%',
+                fontSize: '14px',
+              }}>
+                {msg.content}
+                {isMine && (
+                  <span style={{ marginLeft: '6px', fontSize: '11px', color: msg.read ? '#4ade80' : '#94a3b8' }}>
+                    {msg.read ? '✓✓' : '✓'}
+                  </span>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      <div style={{ display: 'flex', gap: '6px', marginTop: '8px' }}>
+        <input
+          value={newMessage}
+          onChange={e => setNewMessage(e.target.value)}
+          placeholder="Type a message..."
+          onKeyDown={e => e.key === 'Enter' && sendMessage()}
+          style={{ flex: 1, padding: '8px 10px', borderRadius: '20px', border: '1px solid #ccc' }}
+        />
+        <button onClick={sendMessage} style={{ background: '#1e293b', color: 'white', border: 'none', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer' }}>➤</button>
+      </div>
     </div>
   )
 }

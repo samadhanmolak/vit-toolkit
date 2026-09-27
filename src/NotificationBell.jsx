@@ -31,8 +31,8 @@ export default function NotificationBell({ session }) {
   }
 
   return (
-    <div style={{ display: 'inline-block', position: 'relative', fontSize: '24px' }}>
-      🔔
+<div style={{ display: 'inline-block', position: 'relative', fontSize: '74px', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      🔔      
       {unreadCount > 0 && (
         <span style={{
           position: 'absolute', top: '-8px', right: '-8px',

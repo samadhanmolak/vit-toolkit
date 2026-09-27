@@ -108,7 +108,7 @@ export default function CreateListing({ session }) {
   }
 
   return (
-    <div style={{ maxWidth: '400px' }}>
+    <div style={{ maxWidth: '480px', margin: '0 auto', background: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
       <h3>Create Listing</h3>
       <input style={fieldStyle} placeholder="Title" value={title} onChange={e => setTitle(e.target.value)} />
       <input style={fieldStyle} placeholder="Description" value={description} onChange={e => setDescription(e.target.value)} />

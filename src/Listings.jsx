@@ -4,17 +4,13 @@ import Avatar from './Avatar'
 import Chat from './Chat'
 import PresenceStatus from './PresenceStatus'
 
-export default function Listings({ session, onlineUsers }) {
+export default function Listings({ session, onlineUsers, searchQuery, filterCategory, maxPrice }) {
   const [listings, setListings] = useState([])
   const [offerAmount, setOfferAmount] = useState({})
   const [openChat, setOpenChat] = useState(null)
-  const [filterCategory, setFilterCategory] = useState('')
-  const [maxPrice, setMaxPrice] = useState('')
-  const [categories, setCategories] = useState([])
 
   useEffect(() => {
     fetchListings()
-    fetchCategories()
 
     const channel = supabase
       .channel('listings-live')
@@ -28,11 +24,6 @@ export default function Listings({ session, onlineUsers }) {
 
     return () => { supabase.removeChannel(channel) }
   }, [])
-
-  const fetchCategories = async () => {
-    const { data, error } = await supabase.from('categories').select('*').order('name')
-    if (!error) setCategories(data)
-  }
 
   const fetchListings = async () => {
     const { data, error } = await supabase
@@ -117,139 +108,180 @@ export default function Listings({ session, onlineUsers }) {
     fetchListings()
   }
 
-  return (
-    <div>
-      <h3>Listings</h3>
-      <div style={{ display: 'flex', gap: '10px', margin: '10px 0' }}>
-        <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}>
-          <option value="">All Categories</option>
-          {categories.map(cat => (
-            <option key={cat.id} value={cat.name}>{cat.name}</option>
-          ))}
-        </select>
-        <input
-          type="number"
-          placeholder="Max price (₹)"
-          value={maxPrice}
-          onChange={e => setMaxPrice(e.target.value)}
-        />
-      </div>
-      {listings
-        .filter(item => !filterCategory || item.category === filterCategory)
-        .filter(item => !maxPrice || item.price <= parseFloat(maxPrice))
-        .map(item => {
-          const isOwner = item.seller_id === session.user.id
-          const myOffers = !isOwner ? item.offers.filter(o => o.buyer_id === session.user.id) : []
-          const myOffer = myOffers.find(o => o.status === 'pending' || o.status === 'accepted')
-          return (
-            <div key={item.id} style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}>
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                {item.image_urls?.map((url, i) => (
-                  <img
-                    key={i}
-                    src={url}
-                    alt={item.title}
-                    style={{ width: '150px', display: 'block', cursor: 'pointer' }}
-                    onClick={() => window.open(url, '_blank')}
-                  />
-                ))}
-              </div>
-              {item.video_url && (
-                <video src={item.video_url} controls style={{ width: '250px', marginTop: '8px' }} />
-              )}
-              <h4>{item.title} — ₹{item.price} ({item.status})</h4>
-              <p>{item.description}</p>
-              <p>Category: {item.category} | Condition: {item.condition} | Used: {item.years_used} yrs</p>
+  const filteredListings = listings
+    .filter(item => !filterCategory || item.category === filterCategory)
+    .filter(item => !maxPrice || item.price <= parseFloat(maxPrice))
+    .filter(item => {
+      if (!searchQuery?.trim()) return true
+      const q = searchQuery.toLowerCase()
+      return item.title?.toLowerCase().includes(q) || item.description?.toLowerCase().includes(q)
+    })
 
-              {isOwner ? (
-                <div>
-                  <h5>Offers on this listing:</h5>
-                  {item.offers.length === 0 && <p style={{ color: '#888' }}>No offers yet</p>}
-                  {item.offers.map(offer => (
-                    <div key={offer.id} style={{ border: '1px solid #ddd', margin: '6px 0', padding: '6px' }}>
-                      <p>Offer: ₹{offer.offered_price} — Status: {offer.status}</p>
-                      {offer.status === 'pending' && (
-                        <div>
-                          <button onClick={() => respondToOffer(offer.id, 'accepted', item.id)}>Accept</button>
-                          <button onClick={() => respondToOffer(offer.id, 'rejected')}>Reject</button>
-                        </div>
-                      )}
-                      <button onClick={() => setOpenChat(offer.id)}>Message Buyer</button>
-                      {openChat === offer.id && (
-                        <Chat session={session} listingId={item.id} otherUserId={offer.buyer_id} onClose={() => setOpenChat(null)} />
-                      )}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
-                        <div style={{ position: 'relative' }}>
-                          <Avatar name={offer.buyerName} size={28} />
-                          {onlineUsers?.has(offer.buyer_id) && (
-                            <span style={{
-                              position: 'absolute', bottom: 0, right: 0,
-                              width: '8px', height: '8px', borderRadius: '50%',
-                              background: '#22c55e', border: '2px solid white',
-                            }} />
-                          )}
-                        </div>
-                        <div>
-                          <div>{offer.buyerName}</div>
-                          <PresenceStatus userId={offer.buyer_id} isOnline={onlineUsers?.has(offer.buyer_id)} />
-                        </div>
+ return (
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+      {filteredListings.length === 0 && (
+        <p style={{ textAlign: 'center', color: '#888', marginTop: '30px' }}>No listings match your search/filters</p>
+      )}
+      {filteredListings.map(item => {
+        const isOwner = item.seller_id === session.user.id
+        const myOffers = !isOwner ? item.offers.filter(o => o.buyer_id === session.user.id) : []
+        const myOffer = myOffers.find(o => o.status === 'pending' || o.status === 'accepted')
+        return (
+          <div key={item.id} style={cardStyle}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px', maxWidth: '312px' }}>
+              {item.image_urls?.map((url, i) => (
+               <img
+                  key={i}
+                  src={url}
+                  alt={item.title}
+                  style={{ width: '150px', height: '150px', objectFit: 'cover', borderRadius: '8px', display: 'block', cursor: 'pointer' }}
+                  onClick={() => window.open(url, '_blank')}
+                />
+              ))}
+            </div>
+            {item.video_url && (
+              <video src={item.video_url} controls style={{ width: '250px', marginTop: '8px', borderRadius: '8px' }} />
+            )}
+            <h4 style={{ margin: '10px 0 4px' }}>{item.title} — ₹{item.price} <span style={{ fontSize: '12px', color: '#888' }}>({item.status})</span></h4>
+            <p style={{ margin: '0 0 4px', color: '#444' }}>{item.description}</p>
+            <p style={{ margin: 0, fontSize: '13px', color: '#666' }}>Category: {item.category} | Condition: {item.condition} | Used: {item.years_used} yrs</p>
+
+            {isOwner ? (
+              <div style={subSectionStyle}>
+                <h5 style={{ margin: '0 0 8px' }}>Offers on this listing:</h5>
+                {item.offers.length === 0 && <p style={{ color: '#888', margin: 0 }}>No offers yet</p>}
+                {item.offers.map(offer => (
+                  <div key={offer.id} style={offerBlockStyle}>
+                    <p style={{ margin: '0 0 6px' }}>Offer: ₹{offer.offered_price} — Status: {offer.status}</p>
+                    {offer.status === 'pending' && (
+                      <div>
+                        <button onClick={() => respondToOffer(offer.id, 'accepted', item.id)} style={acceptBtnStyle}>Accept</button>
+                        <button onClick={() => respondToOffer(offer.id, 'rejected')} style={rejectBtnStyle}>Reject</button>
+                      </div>
+                    )}
+                    <button onClick={() => setOpenChat(offer.id)} style={chatBtnStyle}>Message Buyer</button>
+                    {openChat === offer.id && (
+                      <Chat session={session} listingId={item.id} otherUserId={offer.buyer_id} onClose={() => setOpenChat(null)} />
+                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '6px' }}>
+                      <div style={{ position: 'relative' }}>
+                        <Avatar name={offer.buyerName} size={28} />
+                        {onlineUsers?.has(offer.buyer_id) && <OnlineDot size={8} />}
+                      </div>
+                      <div>
+                        <div>{offer.buyerName}</div>
+                        <PresenceStatus userId={offer.buyer_id} isOnline={onlineUsers?.has(offer.buyer_id)} />
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : (
-                <div>
-                  {myOffers.length > 0 && myOffers.map(o => (
-                    <div key={o.id} style={{ border: '1px solid #ddd', margin: '6px 0', padding: '6px' }}>
-                      <p>Your offer: ₹{o.offered_price} — Status: {o.status}</p>
-                      {o.status !== 'rejected' && (
-                        <div>
-                          <button onClick={() => setOpenChat(o.id)}>Message Seller</button>
-                          {openChat === o.id && (
-                            <Chat session={session} listingId={item.id} otherUserId={item.seller_id} onClose={() => setOpenChat(null)} />
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-
-                  {!myOffer && item.status === 'active' && (
-                    <div>
-                      <input
-                        type="number"
-                        placeholder="Your offer (₹)"
-                        onChange={e => setOfferAmount({ ...offerAmount, [item.id]: e.target.value })}
-                      />
-                      <button onClick={() => makeOffer(item.id)}>Send Offer</button>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
-                <div style={{ position: 'relative' }}>
-                  <Avatar name={item.sellerName} />
-                  {onlineUsers?.has(item.seller_id) && (
-                    <span style={{
-                      position: 'absolute', bottom: 0, right: 0,
-                      width: '10px', height: '10px', borderRadius: '50%',
-                      background: '#22c55e', border: '2px solid white',
-                    }} />
-                  )}
-                </div>
-                <div>
-                  <div>{item.sellerName}</div>
-                  <PresenceStatus userId={item.seller_id} isOnline={onlineUsers?.has(item.seller_id)} />
-                </div>
+                  </div>
+                ))}
               </div>
-              {!isOwner && (
-                <button onClick={() => reportListing(item.id)} style={{ marginTop: '6px', fontSize: '12px', color: '#999' }}>
-                  🚩 Report
-                </button>
-              )}
+            ) : (
+              <div style={subSectionStyle}>
+                {myOffers.length > 0 && myOffers.map(o => (
+                  <div key={o.id} style={offerBlockStyle}>
+                    <p style={{ margin: '0 0 6px' }}>Your offer: ₹{o.offered_price} — Status: {o.status}</p>
+                    {o.status !== 'rejected' && (
+                      <div>
+                        <button onClick={() => setOpenChat(o.id)} style={chatBtnStyle}>Message Seller</button>
+                        {openChat === o.id && (
+                          <Chat session={session} listingId={item.id} otherUserId={item.seller_id} onClose={() => setOpenChat(null)} />
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))}
+
+                {!myOffer && item.status === 'active' && (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="number"
+                      placeholder="Your offer (₹)"
+                      onChange={e => setOfferAmount({ ...offerAmount, [item.id]: e.target.value })}
+                      style={{ padding: '8px', borderRadius: '6px', border: '1px solid #d1d5db' }}
+                    />
+                    <button onClick={() => makeOffer(item.id)} style={acceptBtnStyle}>Send Offer</button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '10px' }}>
+              <div style={{ position: 'relative' }}>
+                <Avatar name={item.sellerName} />
+                {onlineUsers?.has(item.seller_id) && <OnlineDot size={10} />}
+              </div>
+              <div>
+                <div>{item.sellerName}</div>
+                <PresenceStatus userId={item.seller_id} isOnline={onlineUsers?.has(item.seller_id)} />
+              </div>
             </div>
-          )
-        })}
+            {!isOwner && (
+              <button onClick={() => reportListing(item.id)} style={{ marginTop: '8px', fontSize: '12px', color: '#999', background: 'none', border: 'none', cursor: 'pointer' }}>
+                🚩 Report
+              </button>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
+}
+
+function OnlineDot({ size }) {
+  return (
+    <span style={{
+      position: 'absolute', bottom: 0, right: 0,
+      width: `${size}px`, height: `${size}px`, borderRadius: '50%',
+      background: '#22c55e', border: '2px solid white',
+    }} />
+  )
+}
+
+/*
+Color options to try:
+1. Sage-beige: background: '#eef3ea', border: '1px solid #dde6d3'
+2. Warm sand: background: '#f3ece1', border: '1px solid #e6d9c6'
+3. Soft mint: background: '#a8eec8', border: '1px solid #d3e8dc'
+4. Muted olive-tan: background: '#e8d150', border: '1px solid #ded9c2'
+5. Dusty blue-green: background: '#e6efec', border: '1px solid #cfe0da'
+*/
+const cardStyle = {
+  background: '#707275',
+  border: '1px solid #dbeafe',
+  borderRadius: '12px',
+  padding: '16px',
+}
+
+const subSectionStyle = {
+  background: '#f1f5f9',
+  border: '1px solid #e2e8f0',
+  borderRadius: '8px',
+  padding: '10px',
+  marginTop: '10px',
+  maxHeight: '280px',
+  overflowY: 'auto',
+}
+
+const offerBlockStyle = {
+  background: 'white',
+  border: '1px solid #0e53ae',
+  borderRadius: '6px',
+  padding: '10px',
+  margin: '0 0 8px',
+}
+
+const acceptBtnStyle = {
+  background: '#2563eb', color: 'white', border: 'none', borderRadius: '6px',
+  padding: '7px 12px', marginRight: '6px', cursor: 'pointer', fontSize: '13px',
+}
+
+const rejectBtnStyle = {
+  background: '#d4e1f3', color: '#444', border: '1px solid #d1d5db', borderRadius: '6px',
+  padding: '7px 12px', cursor: 'pointer', fontSize: '13px',
+}
+
+const chatBtnStyle = {
+  background: 'none', border: '1px solid #0f56ee', color: '#2563eb', borderRadius: '6px',
+  padding: '6px 10px', marginTop: '6px', cursor: 'pointer', fontSize: '13px',
 }
